@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <string name="ev_routing_title">Elektroauto (EV)</string>
+    <string name="ev_searching_chargers">Schnelllader &amp; Raststätten werden gesucht…</string>
+
     <!-- SECTION: Strings -->
     <!-- Button text (should be short) -->
     <string name="back">Back</string>

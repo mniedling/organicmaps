@@ -1,8 +1,30 @@
 package app.organicmaps.routing.ev
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
+interface EVPlannerCallback {
+  fun onStopsCalculated(stops: List<EVRouteStop>)
+}
+
 class EVRoutePlanner(
   private val dataProvider: EVDataProvider
 ) {
+
+  fun planChargingStopsAsync(
+    routePolyline: List<Pair<Double, Double>>,
+    options: EVCorridorOptions = EVCorridorOptions(),
+    callback: EVPlannerCallback
+  ) {
+    GlobalScope.launch(Dispatchers.Default) {
+      val stops = planChargingStops(routePolyline, options)
+      withContext(Dispatchers.Main) {
+        callback.onStopsCalculated(stops)
+      }
+    }
+  }
 
   /**
    * Plans EV charging stops along a route polyline.

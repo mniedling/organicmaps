@@ -30,6 +30,11 @@
         android:checked="true" />
 
       <app.organicmaps.widget.RoutingToolbarButton
+        android:id="@+id/ev"
+        style="@style/MwmWidget.RoutingToolbarCell"
+        android:button="@drawable/ic_ev_charging" />
+
+      <app.organicmaps.widget.RoutingToolbarButton
         android:id="@+id/pedestrian"
         style="@style/MwmWidget.RoutingToolbarCell"
         android:button="@drawable/ic_pedestrian" />

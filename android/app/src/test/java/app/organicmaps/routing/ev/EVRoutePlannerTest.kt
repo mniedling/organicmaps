@@ -18,39 +18,41 @@ class EVRoutePlannerTest {
   }
 
   @Test
-  fun testPlanChargingStops() = runBlocking {
+  fun testPlanChargingStopsHessenThuringen() = runBlocking {
     val polyline = listOf(
-      50.9375 to 6.9603,   // Köln (0 km)
-      50.1109 to 8.6821,   // Frankfurt (~150 km)
-      49.4521 to 11.0767,  // Nürnberg (~370 km)
-      48.1351 to 11.5820   // München (~540 km)
+      50.1109 to 8.6821,   // Frankfurt am Main (Hessen, 0 km)
+      50.5516 to 9.6752,   // Fulda (Hessen, ~100 km)
+      50.8682 to 9.7077,   // Bad Hersfeld / Kirchheim (Hessen, ~140 km)
+      50.9746 to 10.3244,  // Eisenach (Thüringen, ~190 km)
+      50.9848 to 11.0299,  // Erfurt (Thüringen, ~245 km)
+      50.9803 to 11.3290   // Weimar (Thüringen, ~265 km)
     )
 
     val mockStations = listOf(
       EVChargingStation(
-        id = 1,
-        name = "Fastned Limburg (A3)",
-        lat = 50.38,
-        lon = 8.05,
-        operator = "Fastned",
-        maxPowerKw = 300.0,
+        id = 101,
+        name = "Ionity Kirchheimer Dreieck (Hessen)",
+        lat = 50.84,
+        lon = 9.57,
+        operator = "Ionity",
+        maxPowerKw = 350.0,
         plugTypes = listOf(PlugType.CCS),
         isRestArea = true
       ),
       EVChargingStation(
-        id = 2,
-        name = "Ionity Würzburg (A3)",
-        lat = 49.78,
-        lon = 9.93,
-        operator = "Ionity",
-        maxPowerKw = 350.0,
+        id = 102,
+        name = "EnBW Fastned Eisenach (Thüringen)",
+        lat = 50.96,
+        lon = 10.35,
+        operator = "EnBW",
+        maxPowerKw = 300.0,
         plugTypes = listOf(PlugType.CCS),
         isRestArea = true
       )
     )
 
     val options = EVCorridorOptions(
-      maxRangeKm = 300.0,
+      maxRangeKm = 150.0,
       minArrivalBatteryPercent = 15.0,
       minChargingPowerKw = 50.0
     )
@@ -59,7 +61,7 @@ class EVRoutePlannerTest {
     val stops = planner.planChargingStops(polyline, options)
 
     assertNotNull(stops)
-    assertTrue("Should suggest at least one charging stop for ~540km route with 300km range", stops.isNotEmpty())
-    assertEquals("First stop should be a fast charger", "Fastned Limburg (A3)", stops.first().station.name)
+    assertTrue("Should suggest charging stop along Hessen/Thüringen corridor", stops.isNotEmpty())
+    assertEquals("First stop should be Ionity Kirchheimer Dreieck (Hessen)", "Ionity Kirchheimer Dreieck (Hessen)", stops.first().station.name)
   }
 }

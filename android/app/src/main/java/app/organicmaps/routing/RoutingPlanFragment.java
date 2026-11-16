@@ -25,10 +25,19 @@ import app.organicmaps.sdk.routing.RoutingController;
 import app.organicmaps.sdk.routing.RoutingInfo;
 import app.organicmaps.sdk.routing.RoutingOptions;
 import app.organicmaps.sdk.routing.TransitRouteInfo;
+import app.organicmaps.routing.ev.EVCorridorOptions;
+import app.organicmaps.routing.ev.EVRoutePlanner;
+import app.organicmaps.routing.ev.EVRouteStop;
+import app.organicmaps.routing.ev.OverpassEVProvider;
+import app.organicmaps.sdk.routing.RouteMarkData;
+import app.organicmaps.sdk.routing.RouteMarkType;
 import app.organicmaps.settings.DrivingOptionsActivity;
 import app.organicmaps.util.UiUtils;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import kotlin.Pair;
+import java.util.ArrayList;
+import java.util.List;
 
 public class RoutingPlanFragment extends Fragment implements View.OnLayoutChangeListener, RoutingBottomMenuListener
 {
@@ -312,6 +321,47 @@ public class RoutingPlanFragment extends Fragment implements View.OnLayoutChange
     setRouterClick(R.id.transit, Router.Transit);
     setRouterClick(R.id.bicycle, Router.Bicycle);
     setRouterClick(R.id.ruler, Router.Ruler);
+    if (mRouterTypes.findViewById(R.id.ev) != null)
+    {
+      mRouterTypes.findViewById(R.id.ev).setOnClickListener(v -> {
+        RoutingController.get().setRouterType(Router.Vehicle);
+        updateRoutingOptions(Router.Vehicle);
+        triggerEvChargingPlanner();
+      });
+    }
+  }
+
+  private void triggerEvChargingPlanner()
+  {
+    RouteMarkData[] points = Framework.nativeGetRoutePoints();
+    if (points == null || points.length < 2) return;
+
+    List<Pair<Double, Double>> polyline = new ArrayList<>();
+    for (RouteMarkData pt : points)
+    {
+      polyline.add(new Pair<>(pt.mLat, pt.mLon));
+    }
+
+    EVRoutePlanner planner = new EVRoutePlanner(new OverpassEVProvider("https://overpass-api.de/api/interpreter", 15000));
+    planner.planChargingStopsAsync(polyline, new EVCorridorOptions(), stops -> {
+      if (stops == null || stops.isEmpty() || getActivity() == null) return;
+      for (EVRouteStop stop : stops)
+      {
+        RouteMarkData mark = new RouteMarkData(
+          stop.getStation().getName(),
+          "⚡ EV Ladesäule",
+          RouteMarkType.Intermediate,
+          0,
+          true,
+          false,
+          false,
+          stop.getStation().getLat(),
+          stop.getStation().getLon()
+        );
+        Framework.addRoutePoint(mark, false);
+      }
+      RoutingController.get().rebuildLastRoute();
+    });
   }
 
   private void setRouterClick(@IdRes int buttonId, @NonNull Router router)
